@@ -22,6 +22,7 @@ import { Event } from '../OpenViduInternal/Events/Event';
 import { StreamManagerEvent } from '../OpenViduInternal/Events/StreamManagerEvent';
 import { VideoElementEvent } from '../OpenViduInternal/Events/VideoElementEvent';
 import { VideoInsertMode } from '../OpenViduInternal/Enums/VideoInsertMode';
+import logger from '../logger';
 
 import EventEmitter = require('wolfy87-eventemitter');
 import platform = require('platform');
@@ -131,14 +132,14 @@ export class StreamManager implements EventDispatcher {
         this.canPlayListener = () => {
             if (this.stream.isLocal()) {
                 if (!this.stream.displayMyRemote()) {
-                    console.info("Your local 'Stream' with id [" + this.stream.streamId + '] video is now playing');
+                    logger.info("Your local 'Stream' with id [" + this.stream.streamId + '] video is now playing');
                     this.ee.emitEvent('videoPlaying', [new VideoElementEvent(this.videos[0].video, this, 'videoPlaying')]);
                 } else {
-                    console.info("Your own remote 'Stream' with id [" + this.stream.streamId + '] video is now playing');
+                    logger.info("Your own remote 'Stream' with id [" + this.stream.streamId + '] video is now playing');
                     this.ee.emitEvent('remoteVideoPlaying', [new VideoElementEvent(this.videos[0].video, this, 'remoteVideoPlaying')]);
                 }
             } else {
-                console.info("Remote 'Stream' with id [" + this.stream.streamId + '] video is now playing');
+                logger.info("Remote 'Stream' with id [" + this.stream.streamId + '] video is now playing');
                 this.ee.emitEvent('videoPlaying', [new VideoElementEvent(this.videos[0].video, this, 'videoPlaying')]);
             }
             this.ee.emitEvent('streamPlaying', [new StreamManagerEvent(this, 'streamPlaying', undefined)]);
@@ -151,9 +152,9 @@ export class StreamManager implements EventDispatcher {
     on(type: string, handler: (event: Event) => void): EventDispatcher {
         this.ee.on(type, event => {
             if (event) {
-                console.info("Event '" + type + "' triggered by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'", event);
+                logger.info("Event '" + type + "' triggered by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'", event);
             } else {
-                console.info("Event '" + type + "' triggered by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'");
+                logger.info("Event '" + type + "' triggered by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'");
             }
             handler(event);
         });
@@ -185,9 +186,9 @@ export class StreamManager implements EventDispatcher {
     once(type: string, handler: (event: Event) => void): StreamManager {
         this.ee.once(type, event => {
             if (event) {
-                console.info("Event '" + type + "' triggered once by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'", event);
+                logger.info("Event '" + type + "' triggered once by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'", event);
             } else {
-                console.info("Event '" + type + "' triggered once by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'");
+                logger.info("Event '" + type + "' triggered once by '" + (this.remote ? 'Subscriber' : 'Publisher') + "'");
             }
             handler(event);
         });
@@ -279,7 +280,7 @@ export class StreamManager implements EventDispatcher {
             canplayListenerAdded: false
         });
 
-        console.info('New video element associated to ', this);
+        logger.info('New video element associated to ', this);
 
         return returnNumber;
     }
@@ -451,7 +452,7 @@ export class StreamManager implements EventDispatcher {
                 this.videos[i].video.removeEventListener('canplay', this.canPlayListener);
                 this.videos.splice(i, 1);
                 disassociated = true;
-                console.info('Video element disassociated from ', this);
+                logger.info('Video element disassociated from ', this);
                 break;
             }
         }

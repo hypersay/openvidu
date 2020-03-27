@@ -39,6 +39,7 @@ import { StreamEvent } from '../OpenViduInternal/Events/StreamEvent';
 import { StreamPropertyChangedEvent } from '../OpenViduInternal/Events/StreamPropertyChangedEvent';
 import { OpenViduError, OpenViduErrorName } from '../OpenViduInternal/Enums/OpenViduError';
 import { VideoInsertMode } from '../OpenViduInternal/Enums/VideoInsertMode';
+import logger from '../logger';
 
 import EventEmitter = require('wolfy87-eventemitter');
 import platform = require('platform');
@@ -267,11 +268,11 @@ export class Session implements EventDispatcher {
             completionHandler = param4;
         }
 
-        console.info('Subscribing to ' + stream.connection.connectionId);
+        logger.info('Subscribing to ' + stream.connection.connectionId);
 
         stream.subscribe()
             .then(() => {
-                console.info('Subscribed correctly to ' + stream.connection.connectionId);
+                logger.info('Subscribed correctly to ' + stream.connection.connectionId);
                 if (completionHandler !== undefined) {
                     completionHandler(undefined);
                 }
@@ -331,16 +332,16 @@ export class Session implements EventDispatcher {
     unsubscribe(subscriber: Subscriber): void {
         const connectionId = subscriber.stream.connection.connectionId;
 
-        console.info('Unsubscribing from ' + connectionId);
+        logger.info('Unsubscribing from ' + connectionId);
 
         this.openvidu.sendRequest(
             'unsubscribeFromVideo',
             { sender: subscriber.stream.connection.connectionId },
             (error, response) => {
                 if (error) {
-                    console.error('Error unsubscribing from ' + connectionId, error);
+                    logger.error('Error unsubscribing from ' + connectionId, error);
                 } else {
-                    console.info('Unsubscribed correctly from ' + connectionId);
+                    logger.info('Unsubscribed correctly from ' + connectionId);
                 }
                 subscriber.stream.disposeWebRtcPeer();
                 subscriber.stream.disposeMediaStream();
@@ -423,21 +424,21 @@ export class Session implements EventDispatcher {
         const stream = publisher.stream;
 
         if (!stream.connection) {
-            console.error('The associated Connection object of this Publisher is null', stream);
+            logger.error('The associated Connection object of this Publisher is null', stream);
             return;
         } else if (stream.connection !== this.connection) {
-            console.error('The associated Connection object of this Publisher is not your local Connection.' +
+            logger.error('The associated Connection object of this Publisher is not your local Connection.' +
                 "Only moderators can force unpublish on remote Streams via 'forceUnpublish' method", stream);
             return;
         } else {
 
-            console.info('Unpublishing local media (' + stream.connection.connectionId + ')');
+            logger.info('Unpublishing local media (' + stream.connection.connectionId + ')');
 
             this.openvidu.sendRequest('unpublishVideo', (error, response) => {
                 if (error) {
-                    console.error(error);
+                    logger.error(error);
                 } else {
-                    console.info('Media unpublished correctly');
+                    logger.info('Media unpublished correctly');
                 }
             });
 
@@ -470,20 +471,20 @@ export class Session implements EventDispatcher {
      */
     forceDisconnect(connection: Connection): Promise<any> {
         return new Promise((resolve, reject) => {
-            console.info('Forcing disconnect for connection ' + connection.connectionId);
+            logger.info('Forcing disconnect for connection ' + connection.connectionId);
             this.openvidu.sendRequest(
                 'forceDisconnect',
                 { connectionId: connection.connectionId },
                 (error, response) => {
                     if (error) {
-                        console.error('Error forcing disconnect for Connection ' + connection.connectionId, error);
+                        logger.error('Error forcing disconnect for Connection ' + connection.connectionId, error);
                         if (error.code === 401) {
                             reject(new OpenViduError(OpenViduErrorName.OPENVIDU_PERMISSION_DENIED, "You don't have permissions to force a disconnection"));
                         } else {
                             reject(error);
                         }
                     } else {
-                        console.info('Forcing disconnect correctly for Connection ' + connection.connectionId);
+                        logger.info('Forcing disconnect correctly for Connection ' + connection.connectionId);
                         resolve();
                     }
                 }
@@ -509,20 +510,20 @@ export class Session implements EventDispatcher {
      */
     forceUnpublish(stream: Stream): Promise<any> {
         return new Promise((resolve, reject) => {
-            console.info('Forcing unpublish for stream ' + stream.streamId);
+            logger.info('Forcing unpublish for stream ' + stream.streamId);
             this.openvidu.sendRequest(
                 'forceUnpublish',
                 { streamId: stream.streamId },
                 (error, response) => {
                     if (error) {
-                        console.error('Error forcing unpublish for Stream ' + stream.streamId, error);
+                        logger.error('Error forcing unpublish for Stream ' + stream.streamId, error);
                         if (error.code === 401) {
                             reject(new OpenViduError(OpenViduErrorName.OPENVIDU_PERMISSION_DENIED, "You don't have permissions to force an unpublishing"));
                         } else {
                             reject(error);
                         }
                     } else {
-                        console.info('Forcing unpublish correctly for Stream ' + stream.streamId);
+                        logger.info('Forcing unpublish correctly for Stream ' + stream.streamId);
                         resolve();
                     }
                 }
@@ -591,9 +592,9 @@ export class Session implements EventDispatcher {
 
         this.ee.on(type, event => {
             if (event) {
-                console.info("Event '" + type + "' triggered by 'Session'", event);
+                logger.info("Event '" + type + "' triggered by 'Session'", event);
             } else {
-                console.info("Event '" + type + "' triggered by 'Session'");
+                logger.info("Event '" + type + "' triggered by 'Session'");
             }
             handler(event);
         });
@@ -630,9 +631,9 @@ export class Session implements EventDispatcher {
 
         this.ee.once(type, event => {
             if (event) {
-                console.info("Event '" + type + "' triggered once by 'Session'", event);
+                logger.info("Event '" + type + "' triggered once by 'Session'", event);
             } else {
-                console.info("Event '" + type + "' triggered once by 'Session'");
+                logger.info("Event '" + type + "' triggered once by 'Session'");
             }
             handler(event);
         });
@@ -712,7 +713,7 @@ export class Session implements EventDispatcher {
         this.getConnection(response.id, '')
 
             .then(connection => {
-                console.warn('Connection ' + response.id + ' already exists in connections list');
+                logger.warn('Connection ' + response.id + ' already exists in connections list');
             })
             .catch(openViduError => {
                 const connection = new Connection(this, response);
@@ -747,7 +748,7 @@ export class Session implements EventDispatcher {
                 this.ee.emitEvent('connectionDestroyed', [new ConnectionEvent(false, this, 'connectionDestroyed', connection, msg.reason)]);
             })
             .catch(openViduError => {
-                console.error(openViduError);
+                logger.error(openViduError);
             });
     }
 
@@ -820,7 +821,7 @@ export class Session implements EventDispatcher {
                     connection.removeStream(streamId);
                 })
                 .catch(openViduError => {
-                    console.error(openViduError);
+                    logger.error(openViduError);
                 });
         }
     }
@@ -842,7 +843,7 @@ export class Session implements EventDispatcher {
      */
     onNewMessage(msg): void {
 
-        console.info('New signal: ' + JSON.stringify(msg));
+        logger.info('New signal: ' + JSON.stringify(msg));
 
         const strippedType: string = !!msg.type ? msg.type.replace(/^(signal:)/, '') : undefined;
 
@@ -858,7 +859,7 @@ export class Session implements EventDispatcher {
                     }
                 })
                 .catch(openViduError => {
-                    console.error(openViduError);
+                    logger.error(openViduError);
                 });
         } else {
             // Signal sent by server
@@ -914,7 +915,7 @@ export class Session implements EventDispatcher {
                     stream.streamManager.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(stream.streamManager, stream, msg.property, msg.newValue, oldValue, msg.reason)]);
                 }
             } else {
-                console.error("No stream with streamId '" + msg.streamId + "' found for connection '" + msg.connectionId + "' on 'streamPropertyChanged' event");
+                logger.error("No stream with streamId '" + msg.streamId + "' found for connection '" + msg.connectionId + "' on 'streamPropertyChanged' event");
             }
         };
 
@@ -928,7 +929,7 @@ export class Session implements EventDispatcher {
                     callback(connection);
                 })
                 .catch(openViduError => {
-                    console.error(openViduError);
+                    logger.error(openViduError);
                 });
         }
     }
@@ -960,12 +961,12 @@ export class Session implements EventDispatcher {
             .then(connection => {
                 const stream = connection.stream;
                 stream.getWebRtcPeer().addIceCandidate(candidate).catch(error => {
-                    console.error('Error adding candidate for ' + stream.streamId
+                    logger.error('Error adding candidate for ' + stream.streamId
                         + ' stream of endpoint ' + msg.endpointName + ': ' + error);
                 });
             })
             .catch(openViduError => {
-                console.error(openViduError);
+                logger.error(openViduError);
             });
     }
 
@@ -973,14 +974,14 @@ export class Session implements EventDispatcher {
      * @hidden
      */
     onSessionClosed(msg): void {
-        console.info('Session closed: ' + JSON.stringify(msg));
+        logger.info('Session closed: ' + JSON.stringify(msg));
         const s = msg.sessionId;
         if (s !== undefined) {
             this.ee.emitEvent('session-closed', [{
                 session: s
             }]);
         } else {
-            console.warn('Session undefined on session closed', msg);
+            logger.warn('Session undefined on session closed', msg);
         }
     }
 
@@ -988,7 +989,7 @@ export class Session implements EventDispatcher {
      * @hidden
      */
     onLostConnection(reason: string): void {
-        console.warn('Lost connection in Session ' + this.sessionId);
+        logger.warn('Lost connection in Session ' + this.sessionId);
         if (!!this.sessionId && !this.connection.disposed) {
             this.leave(true, reason);
         }
@@ -998,7 +999,7 @@ export class Session implements EventDispatcher {
      * @hidden
      */
     onRecoveredConnection(): void {
-        console.info('Recovered connection in Session ' + this.sessionId);
+        logger.info('Recovered connection in Session ' + this.sessionId);
         this.reconnectBrokenStreams();
         this.ee.emitEvent('reconnected', []);
     }
@@ -1007,14 +1008,14 @@ export class Session implements EventDispatcher {
      * @hidden
      */
     onMediaError(params): void {
-        console.error('Media error: ' + JSON.stringify(params));
+        logger.error('Media error: ' + JSON.stringify(params));
         const err = params.error;
         if (err) {
             this.ee.emitEvent('error-media', [{
                 error: err
             }]);
         } else {
-            console.warn('Received undefined media error. Params:', params);
+            logger.warn('Received undefined media error. Params:', params);
         }
     }
 
@@ -1041,7 +1042,7 @@ export class Session implements EventDispatcher {
         const streamId: string = response.streamId;
         this.getConnection(connectionId, 'No connection found for connectionId ' + connectionId)
             .then(connection => {
-                console.info('Filter event dispatched');
+                logger.info('Filter event dispatched');
                 const stream: Stream = connection.stream;
                 stream.filter.handlers[response.eventType](new FilterEvent(stream.filter, response.eventType, response.data));
             });
@@ -1051,24 +1052,24 @@ export class Session implements EventDispatcher {
      * @hidden
      */
     reconnectBrokenStreams(): void {
-        console.info('Re-establishing media connections...');
+        logger.info('Re-establishing media connections...');
         let someReconnection = false;
         // Re-establish Publisher stream
         if (!!this.connection.stream && this.connection.stream.streamIceConnectionStateBroken()) {
-            console.warn('Re-establishing Publisher ' + this.connection.stream.streamId);
+            logger.warn('Re-establishing Publisher ' + this.connection.stream.streamId);
             this.connection.stream.initWebRtcPeerSend(true);
             someReconnection = true;
         }
         // Re-establish Subscriber streams
         for (let remoteConnection of Object.values(this.remoteConnections)) {
             if (!!remoteConnection.stream && remoteConnection.stream.streamIceConnectionStateBroken()) {
-                console.warn('Re-establishing Subscriber ' + remoteConnection.stream.streamId);
+                logger.warn('Re-establishing Subscriber ' + remoteConnection.stream.streamId);
                 remoteConnection.stream.initWebRtcPeerReceive(true);
                 someReconnection = true;
             }
         }
         if (!someReconnection) {
-            console.info('There were no media streams in need of a reconnection');
+            logger.info('There were no media streams in need of a reconnection');
         }
     }
 
@@ -1085,13 +1086,13 @@ export class Session implements EventDispatcher {
     leave(forced: boolean, reason: string): void {
 
         forced = !!forced;
-        console.info('Leaving Session (forced=' + forced + ')');
+        logger.info('Leaving Session (forced=' + forced + ')');
 
         if (!!this.connection) {
             if (!this.connection.disposed && !forced) {
                 this.openvidu.sendRequest('leaveRoom', (error, response) => {
                     if (error) {
-                        console.error(error);
+                        logger.error(error);
                     }
                     this.openvidu.closeWs();
                 });
@@ -1108,7 +1109,7 @@ export class Session implements EventDispatcher {
                 sessionDisconnectEvent.callDefaultBehavior();
             }
         } else {
-            console.warn('You were not connected to the session ' + this.sessionId);
+            logger.warn('You were not connected to the session ' + this.sessionId);
         }
     }
 
@@ -1284,8 +1285,8 @@ export class Session implements EventDispatcher {
                     { urls: [stunUrl] },
                     { urls: [turnUrl1, turnUrl2], username: turnUsername, credential: turnCredential }
                 ];
-                console.log("STUN/TURN server IP: " + coturnIp);
-                console.log('TURN temp credentials [' + turnUsername + ':' + turnCredential + ']');
+                logger.log("STUN/TURN server IP: " + coturnIp);
+                logger.log('TURN temp credentials [' + turnUsername + ':' + turnCredential + ']');
             }
             if (!!role) {
                 this.openvidu.role = role;
@@ -1294,9 +1295,9 @@ export class Session implements EventDispatcher {
                 this.openvidu.webrtcStatsInterval = +webrtcStatsInterval;
             }
             if (!!openviduServerVersion) {
-                console.info("openvidu-server version: " + openviduServerVersion);
+                logger.info("openvidu-server version: " + openviduServerVersion);
                 if (openviduServerVersion !== this.openvidu.libraryVersion) {
-                    console.error('OpenVidu Server (' + openviduServerVersion +
+                    logger.error('OpenVidu Server (' + openviduServerVersion +
                         ') and OpenVidu Browser (' + this.openvidu.libraryVersion +
                         ') versions do NOT match. There may be incompatibilities')
                 }
@@ -1306,7 +1307,7 @@ export class Session implements EventDispatcher {
             this.openvidu.httpUri = 'https://' + url.host;
 
         } else {
-            console.error('Token "' + token + '" is not valid')
+            logger.error('Token "' + token + '" is not valid')
         }
     }
 

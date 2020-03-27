@@ -27,6 +27,7 @@ import { StreamPropertyChangedEvent } from '../OpenViduInternal/Events/StreamPro
 import { VideoElementEvent } from '../OpenViduInternal/Events/VideoElementEvent';
 import { OpenViduError, OpenViduErrorName } from '../OpenViduInternal/Enums/OpenViduError';
 import { VideoInsertMode } from '../OpenViduInternal/Enums/VideoInsertMode';
+import logger from '../logger';
 
 import platform = require('platform');
 
@@ -131,7 +132,7 @@ export class Publisher extends StreamManager {
                     },
                     (error, response) => {
                         if (error) {
-                            console.error("Error sending 'streamPropertyChanged' event", error);
+                            logger.error("Error sending 'streamPropertyChanged' event", error);
                         } else {
                             this.session.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(this.session, this.stream, 'audioActive', value, !value, 'publishAudio')]);
                             this.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(this, this.stream, 'audioActive', value, !value, 'publishAudio')]);
@@ -139,7 +140,7 @@ export class Publisher extends StreamManager {
                     });
             }
             this.stream.audioActive = value;
-            console.info("'Publisher' has " + (value ? 'published' : 'unpublished') + ' its audio stream');
+            logger.info("'Publisher' has " + (value ? 'published' : 'unpublished') + ' its audio stream');
         }
     }
 
@@ -177,7 +178,7 @@ export class Publisher extends StreamManager {
                     },
                     (error, response) => {
                         if (error) {
-                            console.error("Error sending 'streamPropertyChanged' event", error);
+                            logger.error("Error sending 'streamPropertyChanged' event", error);
                         } else {
                             this.session.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(this.session, this.stream, 'videoActive', value, !value, 'publishVideo')]);
                             this.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(this, this.stream, 'videoActive', value, !value, 'publishVideo')]);
@@ -185,7 +186,7 @@ export class Publisher extends StreamManager {
                     });
             }
             this.stream.videoActive = value;
-            console.info("'Publisher' has " + (value ? 'published' : 'unpublished') + ' its video stream');
+            logger.info("'Publisher' has " + (value ? 'published' : 'unpublished') + ' its video stream');
         }
     }
 
@@ -468,7 +469,7 @@ export class Publisher extends StreamManager {
                                         },
                                         (error, response) => {
                                             if (error) {
-                                                console.error("Error sending 'streamPropertyChanged' event", error);
+                                                logger.error("Error sending 'streamPropertyChanged' event", error);
                                             } else {
                                                 this.session.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(this.session, this.stream, 'videoDimensions', this.stream.videoDimensions, oldValue, 'screenResized')]);
                                                 this.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(this, this.stream, 'videoDimensions', this.stream.videoDimensions, oldValue, 'screenResized')]);
@@ -519,7 +520,7 @@ export class Publisher extends StreamManager {
             };
 
             const getMediaError = error => {
-                console.error(error);
+                logger.error(error);
                 this.clearPermissionDialogTimer(startTime, timeForDialogEvent);
                 if (error.name === 'Error') {
                     // Safari OverConstrainedError has as name property 'Error' instead of 'OverConstrainedError'

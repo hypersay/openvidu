@@ -18,6 +18,7 @@
 import { Stream } from './Stream';
 import { LocalRecorderState } from '../OpenViduInternal/Enums/LocalRecorderState';
 import platform = require('platform');
+import logger from '../logger';
 
 
 /**
@@ -67,13 +68,13 @@ export class LocalRecorder {
         return new Promise((resolve, reject) => {
             try {
                 if (typeof MediaRecorder === 'undefined') {
-                    console.error('MediaRecorder not supported on your browser. See compatibility in https://caniuse.com/#search=MediaRecorder');
+                    logger.error('MediaRecorder not supported on your browser. See compatibility in https://caniuse.com/#search=MediaRecorder');
                     throw (Error('MediaRecorder not supported on your browser. See compatibility in https://caniuse.com/#search=MediaRecorder'));
                 }
                 if (this.state !== LocalRecorderState.READY) {
                     throw (Error('\'LocalRecord.record()\' needs \'LocalRecord.state\' to be \'READY\' (current value: \'' + this.state + '\'). Call \'LocalRecorder.clean()\' or init a new LocalRecorder before'));
                 }
-                console.log("Starting local recording of stream '" + this.stream.streamId + "' of connection '" + this.connectionId + "'");
+                logger.log("Starting local recording of stream '" + this.stream.streamId + "' of connection '" + this.connectionId + "'");
 
                 let options = {};
                 if (typeof MediaRecorder.isTypeSupported === 'function') {
@@ -83,10 +84,10 @@ export class LocalRecorder {
                         }
                         options = { mimeType };
                     } else {
-                        console.log('No mimeType parameter provided. Using default codecs');
+                        logger.log('No mimeType parameter provided. Using default codecs');
                     }
                 } else {
-                    console.warn('MediaRecorder#isTypeSupported is not supported. Using default codecs');
+                    logger.warn('MediaRecorder#isTypeSupported is not supported. Using default codecs');
                 }
 
                 this.mediaRecorder = new MediaRecorder(this.stream.getMediaStream(), options);
@@ -101,11 +102,11 @@ export class LocalRecorder {
             };
 
             this.mediaRecorder.onerror = (e) => {
-                console.error('MediaRecorder error: ', e);
+                logger.error('MediaRecorder error: ', e);
             };
 
             this.mediaRecorder.onstart = () => {
-                console.log('MediaRecorder started (state=' + this.mediaRecorder.state + ')');
+                logger.log('MediaRecorder started (state=' + this.mediaRecorder.state + ')');
             };
 
             this.mediaRecorder.onstop = () => {
@@ -113,15 +114,15 @@ export class LocalRecorder {
             };
 
             this.mediaRecorder.onpause = () => {
-                console.log('MediaRecorder paused (state=' + this.mediaRecorder.state + ')');
+                logger.log('MediaRecorder paused (state=' + this.mediaRecorder.state + ')');
             };
 
             this.mediaRecorder.onresume = () => {
-                console.log('MediaRecorder resumed (state=' + this.mediaRecorder.state + ')');
+                logger.log('MediaRecorder resumed (state=' + this.mediaRecorder.state + ')');
             };
 
             this.mediaRecorder.onwarning = (e) => {
-                console.log('MediaRecorder warning: ' + e);
+                logger.log('MediaRecorder warning: ' + e);
             };
 
             this.state = LocalRecorderState.RECORDING;
@@ -361,7 +362,7 @@ export class LocalRecorder {
     /* Private methods */
 
     private onStopDefault(): void {
-        console.log('MediaRecorder stopped  (state=' + this.mediaRecorder.state + ')');
+        logger.log('MediaRecorder stopped  (state=' + this.mediaRecorder.state + ')');
 
         this.blob = new Blob(this.chunks, { type: 'video/webm' });
         this.chunks = [];
