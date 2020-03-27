@@ -19,6 +19,7 @@
 
 import { Stream } from '../../OpenVidu/Stream';
 import platform = require('platform');
+import logger from '../../logger';
 
 export class WebRtcStats {
 
@@ -67,14 +68,14 @@ export class WebRtcStats {
         if (!!elastestInstrumentation) {
             // ElasTest instrumentation object found in local storage
 
-            console.warn('WebRtc stats enabled for stream ' + this.stream.streamId + ' of connection ' + this.stream.connection.connectionId);
+            logger.warn('WebRtc stats enabled for stream ' + this.stream.streamId + ' of connection ' + this.stream.connection.connectionId);
 
             this.webRtcStatsEnabled = true;
 
             const instrumentation = JSON.parse(elastestInstrumentation);
             this.statsInterval = instrumentation.webrtc.interval;  // Interval in seconds
 
-            console.warn('localStorage item: ' + JSON.stringify(instrumentation));
+            logger.warn('localStorage item: ' + JSON.stringify(instrumentation));
 
             this.webRtcStatsIntervalId = setInterval(() => {
                 this.sendStatsToHttpEndpoint(instrumentation);
@@ -83,13 +84,13 @@ export class WebRtcStats {
             return;
         }
 
-        console.debug('WebRtc stats not enabled');
+        logger.debug('WebRtc stats not enabled');
     }
 
     public stopWebRtcStats() {
         if (this.webRtcStatsEnabled) {
             clearInterval(this.webRtcStatsIntervalId);
-            console.warn('WebRtc stats stopped for disposed stream ' + this.stream.streamId + ' of connection ' + this.stream.connection.connectionId);
+            logger.warn('WebRtc stats stopped for disposed stream ' + this.stream.streamId + ' of connection ' + this.stream.connection.connectionId);
         }
     }
 
@@ -167,7 +168,7 @@ export class WebRtcStats {
 
             http.onreadystatechange = () => { // Call a function when the state changes.
                 if (http.readyState === 4 && http.status === 200) {
-                    console.log('WebRtc stats successfully sent to ' + url + ' for stream ' + this.stream.streamId + ' of connection ' + this.stream.connection.connectionId);
+                    logger.log('WebRtc stats successfully sent to ' + url + ' for stream ' + this.stream.streamId + ' of connection ' + this.stream.connection.connectionId);
                 }
             };
             http.send(json);
@@ -364,16 +365,16 @@ export class WebRtcStats {
             }
         };
 
-        this.getStatsAgnostic(this.stream.getRTCPeerConnection(), f, (error) => { console.log(error); });
+        this.getStatsAgnostic(this.stream.getRTCPeerConnection(), f, (error) => { logger.log(error); });
     }
 
     private standardizeReport(response) {
-        console.log(response);
+        logger.log(response);
         const standardReport = {};
 
         if (platform.name!.indexOf('Firefox') !== -1) {
             Object.keys(response).forEach(key => {
-                console.log(response[key]);
+                logger.log(response[key]);
             });
             return response;
         }

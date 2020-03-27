@@ -30,6 +30,7 @@ import { PublisherSpeakingEvent } from '../OpenViduInternal/Events/PublisherSpea
 import { StreamManagerEvent } from '../OpenViduInternal/Events/StreamManagerEvent';
 import { StreamPropertyChangedEvent } from '../OpenViduInternal/Events/StreamPropertyChangedEvent';
 import { OpenViduError, OpenViduErrorName } from '../OpenViduInternal/Enums/OpenViduError';
+import logger from '../logger';
 
 /**
  * @hidden
@@ -256,7 +257,7 @@ export class Stream implements EventDispatcher {
 
         this.ee.on('mediastream-updated', () => {
             this.streamManager.updateMediaStream(this.mediaStream);
-            console.debug('Video srcObject [' + this.mediaStream + '] updated in stream [' + this.streamId + ']');
+            logger.debug('Video srcObject [' + this.mediaStream + '] updated in stream [' + this.streamId + ']');
         });
     }
 
@@ -267,9 +268,9 @@ export class Stream implements EventDispatcher {
     on(type: string, handler: (event: Event) => void): EventDispatcher {
         this.ee.on(type, event => {
             if (event) {
-                console.info("Event '" + type + "' triggered by stream '" + this.streamId + "'", event);
+                logger.info("Event '" + type + "' triggered by stream '" + this.streamId + "'", event);
             } else {
-                console.info("Event '" + type + "' triggered by stream '" + this.streamId + "'");
+                logger.info("Event '" + type + "' triggered by stream '" + this.streamId + "'");
             }
             handler(event);
         });
@@ -283,9 +284,9 @@ export class Stream implements EventDispatcher {
     once(type: string, handler: (event: Event) => void): EventDispatcher {
         this.ee.once(type, event => {
             if (event) {
-                console.info("Event '" + type + "' triggered once by stream '" + this.streamId + "'", event);
+                logger.info("Event '" + type + "' triggered once by stream '" + this.streamId + "'", event);
             } else {
-                console.info("Event '" + type + "' triggered once by stream '" + this.streamId + "'");
+                logger.info("Event '" + type + "' triggered once by stream '" + this.streamId + "'");
             }
             handler(event);
         });
@@ -316,7 +317,7 @@ export class Stream implements EventDispatcher {
      */
     applyFilter(type: string, options: Object): Promise<Filter> {
         return new Promise((resolve, reject) => {
-            console.info('Applying filter to stream ' + this.streamId);
+            logger.info('Applying filter to stream ' + this.streamId);
             options = !!options ? options : {};
             if (typeof options !== 'string') {
                 options = JSON.stringify(options);
@@ -326,14 +327,14 @@ export class Stream implements EventDispatcher {
                 { streamId: this.streamId, type, options },
                 (error, response) => {
                     if (error) {
-                        console.error('Error applying filter for Stream ' + this.streamId, error);
+                        logger.error('Error applying filter for Stream ' + this.streamId, error);
                         if (error.code === 401) {
                             reject(new OpenViduError(OpenViduErrorName.OPENVIDU_PERMISSION_DENIED, "You don't have permissions to apply a filter"));
                         } else {
                             reject(error);
                         }
                     } else {
-                        console.info('Filter successfully applied on Stream ' + this.streamId);
+                        logger.info('Filter successfully applied on Stream ' + this.streamId);
                         const oldValue: Filter = this.filter;
                         this.filter = new Filter(type, options);
                         this.filter.stream = this;
@@ -353,20 +354,20 @@ export class Stream implements EventDispatcher {
      */
     removeFilter(): Promise<any> {
         return new Promise((resolve, reject) => {
-            console.info('Removing filter of stream ' + this.streamId);
+            logger.info('Removing filter of stream ' + this.streamId);
             this.session.openvidu.sendRequest(
                 'removeFilter',
                 { streamId: this.streamId },
                 (error, response) => {
                     if (error) {
-                        console.error('Error removing filter for Stream ' + this.streamId, error);
+                        logger.error('Error removing filter for Stream ' + this.streamId, error);
                         if (error.code === 401) {
                             reject(new OpenViduError(OpenViduErrorName.OPENVIDU_PERMISSION_DENIED, "You don't have permissions to remove a filter"));
                         } else {
                             reject(error);
                         }
                     } else {
-                        console.info('Filter successfully removed from Stream ' + this.streamId);
+                        logger.info('Filter successfully removed from Stream ' + this.streamId);
                         const oldValue = this.filter;
                         delete this.filter;
                         this.session.emitEvent('streamPropertyChanged', [new StreamPropertyChangedEvent(this.session, this, 'filter', this.filter, oldValue, 'applyFilter')]);
@@ -483,7 +484,7 @@ export class Stream implements EventDispatcher {
             this.webRtcPeer.dispose();
             this.stopWebRtcStats();
         }
-        console.info((!!this.outboundStreamOpts ? 'Outbound ' : 'Inbound ') + "WebRTCPeer from 'Stream' with id [" + this.streamId + '] is now closed');
+        logger.info((!!this.outboundStreamOpts ? 'Outbound ' : 'Inbound ') + "WebRTCPeer from 'Stream' with id [" + this.streamId + '] is now closed');
     }
 
     /**
@@ -515,7 +516,7 @@ export class Stream implements EventDispatcher {
             }
             delete this.speechEvent;
         }
-        console.info((!!this.outboundStreamOpts ? 'Local ' : 'Remote ') + "MediaStream from 'Stream' with id [" + this.streamId + '] is now disposed');
+        logger.info((!!this.outboundStreamOpts ? 'Local ' : 'Remote ') + "MediaStream from 'Stream' with id [" + this.streamId + '] is now disposed');
     }
 
     /**
@@ -788,7 +789,7 @@ export class Stream implements EventDispatcher {
             return false;
         }
         if (this.isLocal && !!this.session.openvidu.advancedConfiguration.forceMediaReconnectionAfterNetworkDrop) {
-            console.warn('OpenVidu Browser advanced configuration option "forceMediaReconnectionAfterNetworkDrop" is enabled. Publisher stream ' + this.streamId + 'will force a reconnection');
+            logger.warn('OpenVidu Browser advanced configuration option "forceMediaReconnectionAfterNetworkDrop" is enabled. Publisher stream ' + this.streamId + 'will force a reconnection');
             return true;
         }
         const iceConnectionState: RTCIceConnectionState = this.getRTCPeerConnection().iceConnectionState;
@@ -834,7 +835,7 @@ export class Stream implements EventDispatcher {
             };
 
             const successCallback = (sdpOfferParam) => {
-                console.debug('Sending SDP offer to publish as '
+                logger.debug('Sending SDP offer to publish as '
                     + this.streamId, sdpOfferParam);
 
                 const method = reconnect ? 'reconnectStream' : 'publishVideo';
@@ -886,7 +887,7 @@ export class Stream implements EventDispatcher {
                                     this.ee.emitEvent('stream-created-by-publisher', []);
                                 }
                                 this.initWebRtcStats();
-                                console.info("'Publisher' (" + this.streamId + ") successfully " + (reconnect ? "reconnected" : "published") + " to session");
+                                logger.info("'Publisher' (" + this.streamId + ") successfully " + (reconnect ? "reconnected" : "published") + " to session");
                                 resolve();
                             })
                             .catch(error => {
@@ -923,7 +924,7 @@ export class Stream implements EventDispatcher {
                 audio: this.inboundStreamOpts.hasAudio,
                 video: this.inboundStreamOpts.hasVideo
             };
-            console.debug("'Session.subscribe(Stream)' called. Constraints of generate SDP offer",
+            logger.debug("'Session.subscribe(Stream)' called. Constraints of generate SDP offer",
                 offerConstraints);
             const options = {
                 onicecandidate: this.connection.sendIceCandidate.bind(this.connection),
@@ -933,7 +934,7 @@ export class Stream implements EventDispatcher {
             };
 
             const successCallback = (sdpOfferParam) => {
-                console.debug('Sending SDP offer to subscribe to '
+                logger.debug('Sending SDP offer to subscribe to '
                     + this.streamId, sdpOfferParam);
 
                 const method = reconnect ? 'reconnectStream' : 'receiveVideoFrom';
@@ -957,7 +958,7 @@ export class Stream implements EventDispatcher {
                         }
                         const needsTimeoutOnProcessAnswer = this.session.countDownForIonicIosSubscribersActive;
                         this.webRtcPeer.processAnswer(response.sdpAnswer, needsTimeoutOnProcessAnswer).then(() => {
-                            console.info("'Subscriber' (" + this.streamId + ") successfully " + (reconnect ? "reconnected" : "subscribed"));
+                            logger.info("'Subscriber' (" + this.streamId + ") successfully " + (reconnect ? "reconnected" : "subscribed"));
                             this.remotePeerSuccessfullyEstablished();
                             this.initWebRtcStats();
                             resolve();
@@ -994,7 +995,7 @@ export class Stream implements EventDispatcher {
                 }
             }
         }
-        console.debug('Peer remote stream', this.mediaStream);
+        logger.debug('Peer remote stream', this.mediaStream);
 
         if (!!this.mediaStream) {
 
@@ -1143,7 +1144,7 @@ export class Stream implements EventDispatcher {
 
                                     }
 
-                                    console.log(finalReport);
+                                    logger.log(finalReport);
                                 }
                             });
                         }));
@@ -1204,7 +1205,7 @@ export class Stream implements EventDispatcher {
                                     if (report.type === 'remote-inbound-rtp' || report.type === 'remote-outbound-rtp') {
 
                                     }
-                                    console.log(finalReport);
+                                    logger.log(finalReport);
                                 }
                             })
                         })

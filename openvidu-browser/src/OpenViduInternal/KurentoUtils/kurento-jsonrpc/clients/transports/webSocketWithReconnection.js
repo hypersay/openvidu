@@ -16,7 +16,7 @@
 
 "use strict";
 
-var Logger = console;
+var Logger = require('../../logger');
 
 var MAX_RETRIES = 2000; // Forever...
 var RETRY_TIME_MS = 3000; // FIXME: Implement exponential wait times...

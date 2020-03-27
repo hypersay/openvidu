@@ -17,7 +17,7 @@
 
 import { Event } from './Event';
 import { Session } from '../../OpenVidu/Session';
-
+import logger from '../../logger';
 
 /**
  * Defines event `sessionDisconnected` dispatched by [[Session]] after the local user has left the session. This is the local version of the `connectionDestroyed` event, which is only dispatched by remote users
@@ -49,7 +49,7 @@ export class SessionDisconnectedEvent extends Event {
      */
     callDefaultBehavior() {
 
-        console.info("Calling default behavior upon '" + this.type + "' event dispatched by 'Session'");
+        logger.info("Calling default behavior upon '" + this.type + "' event dispatched by 'Session'");
 
         const session = <Session>this.target;
 

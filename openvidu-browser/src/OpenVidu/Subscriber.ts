@@ -18,6 +18,7 @@
 import { Stream } from './Stream';
 import { StreamManager } from './StreamManager';
 import { SubscriberProperties } from '../OpenViduInternal/Interfaces/Public/SubscriberProperties';
+import logger from '../logger';
 
 
 /**
@@ -48,7 +49,7 @@ export class Subscriber extends StreamManager {
         this.stream.getMediaStream().getAudioTracks().forEach((track) => {
             track.enabled = value;
         });
-        console.info("'Subscriber' has " + (value ? 'subscribed to' : 'unsubscribed from') + ' its audio stream');
+        logger.info("'Subscriber' has " + (value ? 'subscribed to' : 'unsubscribed from') + ' its audio stream');
         return this;
     }
 
@@ -60,7 +61,7 @@ export class Subscriber extends StreamManager {
         this.stream.getMediaStream().getVideoTracks().forEach((track) => {
             track.enabled = value;
         });
-        console.info("'Subscriber' has " + (value ? 'subscribed to' : 'unsubscribed from') + ' its video stream');
+        logger.info("'Subscriber' has " + (value ? 'subscribed to' : 'unsubscribed from') + ' its video stream');
         return this;
     }
 
