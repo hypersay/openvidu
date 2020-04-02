@@ -590,14 +590,7 @@ export class Session implements EventDispatcher {
      */
     on(type: string, handler: (event: SessionDisconnectedEvent | SignalEvent | StreamEvent | ConnectionEvent | PublisherSpeakingEvent | RecordingEvent) => void): EventDispatcher {
 
-        this.ee.on(type, event => {
-            if (event) {
-                logger.info("Event '" + type + "' triggered by 'Session'", event);
-            } else {
-                logger.info("Event '" + type + "' triggered by 'Session'");
-            }
-            handler(event);
-        });
+        this.ee.on(type, handler);
 
         if (type === 'publisherStartSpeaking') {
             this.startSpeakingEventsEnabled = true;
@@ -629,14 +622,7 @@ export class Session implements EventDispatcher {
      */
     once(type: string, handler: (event: SessionDisconnectedEvent | SignalEvent | StreamEvent | ConnectionEvent | PublisherSpeakingEvent | RecordingEvent) => void): Session {
 
-        this.ee.once(type, event => {
-            if (event) {
-                logger.info("Event '" + type + "' triggered once by 'Session'", event);
-            } else {
-                logger.info("Event '" + type + "' triggered once by 'Session'");
-            }
-            handler(event);
-        });
+        this.ee.once(type, handler);
 
         if (type === 'publisherStartSpeaking') {
             this.startSpeakingEventsEnabledOnce = true;
@@ -670,7 +656,7 @@ export class Session implements EventDispatcher {
         if (!handler) {
             this.ee.removeAllListeners(type);
         } else {
-            this.ee.off(type, handler);
+            this.ee.removeListener(type, handler);
         }
 
         if (type === 'publisherStartSpeaking') {
