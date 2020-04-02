@@ -262,14 +262,7 @@ export class Stream implements EventDispatcher {
      * See [[EventDispatcher.on]]
      */
     on(type: string, handler: (event: Event) => void): EventDispatcher {
-        this.ee.on(type, event => {
-            if (event) {
-                logger.info("Event '" + type + "' triggered by stream '" + this.streamId + "'", event);
-            } else {
-                logger.info("Event '" + type + "' triggered by stream '" + this.streamId + "'");
-            }
-            handler(event);
-        });
+        this.ee.on(type, handler);
         return this;
     }
 
@@ -278,14 +271,7 @@ export class Stream implements EventDispatcher {
      * See [[EventDispatcher.once]]
      */
     once(type: string, handler: (event: Event) => void): EventDispatcher {
-        this.ee.once(type, event => {
-            if (event) {
-                logger.info("Event '" + type + "' triggered once by stream '" + this.streamId + "'", event);
-            } else {
-                logger.info("Event '" + type + "' triggered once by stream '" + this.streamId + "'");
-            }
-            handler(event);
-        });
+        this.ee.once(type, handler);
         return this;
     }
 
