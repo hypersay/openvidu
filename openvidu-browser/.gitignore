@@ -60,3 +60,4 @@ typings/
 docs/
 lib/
 static/*.js
+.npmrc
